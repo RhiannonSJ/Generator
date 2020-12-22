@@ -410,7 +410,7 @@ void ConvertToGST(void)
   //
   s_tree->Branch("iev",           &brIev,           "iev/I"         );
   s_tree->Branch("neu",	          &brNeutrino,      "neu/I"	    );
-  s_tree->Branch("fspl",	      &brFSPrimLept,    "fspl/I"	    );
+  s_tree->Branch("fspl",	        &brFSPrimLept,    "fspl/I"	    );
   s_tree->Branch("tgt",           &brTarget,        "tgt/I"	    );
   s_tree->Branch("Z",             &brTargetZ,       "Z/I"	    );
   s_tree->Branch("A",             &brTargetA,       "A/I"	    );
@@ -1065,6 +1065,9 @@ void ConvertToGST(void)
 
   } // event loop
 
+  // Copy POT normalization for the generated sample
+  double pot = er_tree->GetWeight();
+  s_tree->SetWeight(pot);
 
   // Copy MC job metadata (gconfig and genv TFolders)
   if(gOptCopyJobMeta) {

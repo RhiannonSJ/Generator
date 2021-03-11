@@ -267,6 +267,7 @@ void RunCherryPicker(void)
 
   unsigned int total_events  = 0;
   unsigned int picked_events = 0;
+  double total_weight        = 0.;
 
   while (( chEl=(TChainElement*)next_file() )) {
 
@@ -298,6 +299,9 @@ void RunCherryPicker(void)
      LOG("gevpick", pNOTICE) 
           << "Input tree header: " << *thdr;
 
+     // Get the weight (POT) from current file and add it to the total
+     total_weight += ghep_tree->GetWeight();
+  
      //
      // Loop over events in current file
      //
@@ -322,6 +326,9 @@ void RunCherryPicker(void)
   }// file loop
 
   // save the cherry-picked MC events
+  LOG("gevpick",pNOTICE) << "Setting weight of the merged files to be: " << total_weight;
+  TTree *outTree = static_cast<TTree*>(ntpw.EventTree());
+  outTree->SetWeight(total_weight);
   ntpw.Save();
   
   LOG("gevpick", pNOTICE) << "Picked " << picked_events << " / " << total_events << " events of type " << gPickedTypeStr;
@@ -472,23 +479,19 @@ bool AcceptEvent(const EventRecord & event)
   }
   else 
   if ( gPickedType == kPtReacModeNotCCQEMEC ) {
-    if(isstr || ischm) return false;
-    if(!(iscc && (isqe || ismec))) return true;
+    if(!(iscc && (isqe || ismec)) || (iscc && (isqe || ismec) && (isstr || ischm))) return true;
   }
   else 
   if ( gPickedType == kPtReacModeNotNumuCCQEMEC ) {
-    if(isstr || ischm) return false;
-    if(!(isnumu && iscc && (isqe || ismec))) return true;
+    if(!(isnumu && iscc && (isqe || ismec)) || (isnumu && iscc && (isqe || ismec) && (isstr || ischm))) return true;
   }
   else 
   if ( gPickedType == kPtReacModeCCNotQEMEC ) {
-    if(isstr || ischm) return false;
-    if(iscc && !(isqe || ismec)) return true;
+    if(iscc && (!(isqe || ismec) || ((isqe || ismec) && (isstr || ischm)))) return true;
   }
   else 
   if ( gPickedType == kPtReacModeNumuNotCCQEMEC ) {
-    if(isstr || ischm) return false;
-    if(isnumu && !(iscc && (isqe || ismec))) return true;
+    if(isnumu && iscc && (!(isqe || ismec) || !((isqe || ismec) && (isstr || ischm)))) return true;
   }
 
   return false;
